@@ -9,7 +9,7 @@ public class PlayerMovementScript : MonoBehaviour
 	//Public variables
 	[Header("Components")]
 	public Rigidbody rb;
-	public Collider col;
+	public CapsuleCollider col;
 
 	[Header("Settings")]
 	public float sensitivity;
@@ -19,19 +19,21 @@ public class PlayerMovementScript : MonoBehaviour
 
 	//Private variables
 	private bool grounded = false;
+	private float radius;
 	private float landingDistance;
 
 	void Start ()
 	{
 		//Get components required in script
 		rb = GetComponent<Rigidbody>();
-		col = GetComponent<Collider>();
+		col = GetComponent<CapsuleCollider>();
 
 		//Setup
+		radius = col.radius;
 		landingDistance = col.bounds.extents.y;
 	}
 
-	void Update()
+	void FixedUpdate()
 	{
 		//Get direaction of where the player is moving
 		float moveDir = CrossPlatformInputManager.GetAxis("Vertical");
@@ -52,17 +54,20 @@ public class PlayerMovementScript : MonoBehaviour
 
 		//Debug for looking the value of both axes
 //		Debug.Log(string.Format("{0}, {1}", CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetAxis("Vertical")));
+	}
 
+	void Update()
+	{
 		//Calculate new angle when turned left or right
 		float newRot = transform.rotation.eulerAngles.y + (CrossPlatformInputManager.GetAxis("Horizontal") * sensitivity * Time.deltaTime);
 		//Apply new angle to the gameobject
 		transform.rotation = Quaternion.Euler(0, newRot, 0);
-
+		
 		//Raycasting
 		RaycastHit hit;
 		Ray landingRay = new Ray(transform.position, Vector3.down);
 
-		if(Physics.Raycast(landingRay, out hit, landingDistance))
+		if(Physics.SphereCast(landingRay, radius, out hit, landingDistance))
 		{
 			//If gameobjects with tag "Environment" is hit, it's grounded.
 			if(hit.collider.tag == "Environment")
@@ -74,12 +79,19 @@ public class PlayerMovementScript : MonoBehaviour
 				grounded = false;
 			}
 		}
-
-		//When player hits the jump button
-		if(grounded && CrossPlatformInputManager.GetButtonDown("Jump"))
+		else
 		{
-			//Add force to boost the player upwards
-			rb.AddForce(Vector3.up * jumpingForce, ForceMode.Impulse);
+			grounded = false;
+		}
+		
+		//When player hits the jump button
+		if(CrossPlatformInputManager.GetButtonDown("Jump"))
+		{
+			if(grounded)
+			{
+				//Add force to boost the player upwards
+				rb.AddForce(Vector3.up * jumpingForce, ForceMode.Impulse);
+			}
 			grounded = false;
 		}
 	}

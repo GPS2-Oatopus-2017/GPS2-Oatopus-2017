@@ -16,6 +16,7 @@ public class PlayerMovementScript : MonoBehaviour
 	public float forwardSpeed;
 	public float backwardSpeed;
 	public float jumpingForce;
+	public float ledgeSpeed;
 
 	public bool isOnLedge = false;
 
@@ -87,6 +88,13 @@ public class PlayerMovementScript : MonoBehaviour
 				rb.constraints = ~RigidbodyConstraints.FreezeAll;
 				isOnLedge = false;
 			}
+			if (CrossPlatformInputManager.GetAxis ("Horizontal") < 0) {
+				transform.Translate (Vector3.left * ledgeSpeed * Time.deltaTime);
+			} else if (CrossPlatformInputManager.GetAxis ("Horizontal") > 0) {
+				transform.Translate (Vector3.right * ledgeSpeed * Time.deltaTime);
+			}
+		} else {
+			rb.constraints = ~RigidbodyConstraints.FreezeAll;
 		}
 	}
 }

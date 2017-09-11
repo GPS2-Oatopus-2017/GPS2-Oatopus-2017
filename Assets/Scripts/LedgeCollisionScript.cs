@@ -22,7 +22,13 @@ public class LedgeCollisionScript : MonoBehaviour
 	{
 		if (other.tag == "Ledge") {
 			Debug.Log ("Touch The Ledge");
+			player.transform.eulerAngles = new Vector3 (transform.eulerAngles.x, other.transform.eulerAngles.y, transform.eulerAngles.z);
 			player.isOnLedge = true;
 		}
+	}
+
+	void OnTriggerExit (Collider other)
+	{
+		player.isOnLedge = false;
 	}
 }

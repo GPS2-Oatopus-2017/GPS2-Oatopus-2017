@@ -30,7 +30,7 @@ public class PlayerMovementScript : MonoBehaviour
 	private bool stickToWall = false;
 	private float landingDistance;
 	private float wallRunDistance;
-	public float runningTime = 0.0f;
+	private float runningTime = 0.0f;
 	private bool startRunning = false;
 
 	//emum States
@@ -44,7 +44,7 @@ public class PlayerMovementScript : MonoBehaviour
 
 		//Setup
 		landingDistance = col.bounds.extents.y;
-		wallRunDistance = 1.0f;
+		wallRunDistance = .8f;
 
 		//current State
 		curState = ControlState.NORMAL;
@@ -79,6 +79,8 @@ public class PlayerMovementScript : MonoBehaviour
 			float newRot = transform.rotation.eulerAngles.y + (CrossPlatformInputManager.GetAxis("Horizontal") * sensitivity * Time.deltaTime);
 			//Apply new angle to the gameobject
 			transform.rotation = Quaternion.Euler(0, newRot, 0);
+
+
 		}
 
 		//Raycasting
@@ -101,13 +103,13 @@ public class PlayerMovementScript : MonoBehaviour
 			}
 		}
 
-		//Same raycasing as above
 		CheckWallRunning();
 
 		//make sure that the jump button is not calling on both functions
 		if (curState == ControlState.WALLRUNNING)
 		{
 			WallRunning();
+
 		}
 		else if (curState == ControlState.NORMAL)
 		{
@@ -128,43 +130,38 @@ public class PlayerMovementScript : MonoBehaviour
 			rb.useGravity = true;
 		}
 
-			
-	
 
 	}
-		
+
 	void CheckWallRunning()
 	{
-		RaycastHit leftHit, rightHit;
-
+		RaycastHit wallHit;
 		//using transfromDirection for the left and right (follow playerObject, not scene)
 		Ray leftSide = new Ray (transform.position,transform.TransformDirection(Vector3.left));
 		Ray rightSide = new Ray (transform.position,transform.TransformDirection(Vector3.right));
 
-		if (Physics.Raycast(leftSide,out leftHit, wallRunDistance))
+		if (Physics.Raycast(leftSide,out wallHit, wallRunDistance))
 		{
-			if(leftHit.collider.tag == "Environment" )
+			if(wallHit.collider.tag == "Environment" )
 			{
 				stickToWall = true;
 				curState = ControlState.WALLRUNNING;
 			}
-			else
-			{
-				stickToWall = false;
-			}
 		}
-		else if (Physics.Raycast(rightSide,out rightHit, wallRunDistance))
+		else if (Physics.Raycast(rightSide,out wallHit, wallRunDistance))
 		{
-			if (rightHit.collider.tag == "Environment")
+			if (wallHit.collider.tag == "Environment")
 			{
 				stickToWall = true;
 				curState = ControlState.WALLRUNNING;
 			}
-			else
-			{
-				stickToWall = false;
-			}
 		}
+		else if (stickToWall)
+		{
+			stickToWall = false;
+			curState = ControlState.NORMAL;
+		}
+
 	}
 
 	void WallRunning()
@@ -176,7 +173,7 @@ public class PlayerMovementScript : MonoBehaviour
 		}
 
 		//Running Sequence
-		if (startRunning)
+		if (startRunning && stickToWall)
 		{
 			runningTime += Time.deltaTime;
 			if (runningTime <= 1.5f)

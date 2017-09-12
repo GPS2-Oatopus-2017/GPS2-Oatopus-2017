@@ -7,7 +7,8 @@ public enum ControlState
 {
 	NORMAL,
 	JUMPING,
-	WALLRUNNING
+	WALLRUNNING,
+	LOCKCONTROL
 }
 
 //Summary: Take control of the player's movement using the input data.
@@ -26,10 +27,11 @@ public class PlayerMovementScript : MonoBehaviour
 
 	//Private variables
 	private bool grounded = false;
-	private bool stickLeft = false;
-	private bool stickRight = false;
+	private bool stickToWall = false;
 	private float landingDistance;
 	private float wallRunDistance;
+	public float runningTime = 0.0f;
+	private bool startRunning = false;
 
 	//emum States
 	public ControlState curState;
@@ -54,8 +56,9 @@ public class PlayerMovementScript : MonoBehaviour
 		float moveDir = CrossPlatformInputManager.GetAxis("Vertical");
 		float moveSpeed = 0;
 
-		//Let the player move at NORMAL & JUMPING, but not WALLRUNNING
-		if (curState == ControlState.NORMAL || curState == ControlState.JUMPING)
+
+		//Let the player move at NORMAL, JUMPING & WALLRUNNING, but not LOCKCONTROL
+		if (curState == ControlState.NORMAL || curState == ControlState.JUMPING || curState == ControlState.WALLRUNNING)
 		{
 			//Use different speed for moving forward or moving backwards
 			if(moveDir > 0)
@@ -98,59 +101,97 @@ public class PlayerMovementScript : MonoBehaviour
 			}
 		}
 
-		//When player hits the jump button
-		if(grounded && CrossPlatformInputManager.GetButtonDown("Jump") && curState == ControlState.NORMAL)
-		{
-			//Add force to boost the player upwards
-			rb.AddForce(Vector3.up * jumpingForce, ForceMode.Impulse);
-			grounded = false;
+		//Same raycasing as above
+		CheckWallRunning();
 
-			//Lock the state here (reset in the code above ^^^^)
-			curState = ControlState.JUMPING;
+		//make sure that the jump button is not calling on both functions
+		if (curState == ControlState.WALLRUNNING)
+		{
+			WallRunning();
 		}
+		else if (curState == ControlState.NORMAL)
+		{
+			//When player hits the jump button
+			if(grounded && CrossPlatformInputManager.GetButtonDown("Jump"))
+			{
+				//Add force to boost the player upwards
+				rb.AddForce(Vector3.up * jumpingForce, ForceMode.Impulse);
+				grounded = false;
+
+				//Lock the state here (reset in the code above ^^^^)
+				curState = ControlState.JUMPING;
+			}
+
+			//Just in case running finish early
+			startRunning = false;
+			runningTime = 0.0f;
+			rb.useGravity = true;
+		}
+
 			
+	
 
 	}
 		
-
-	void WallRunning()
+	void CheckWallRunning()
 	{
 		RaycastHit leftHit, rightHit;
 
+		//using transfromDirection for the left and right (follow playerObject, not scene)
 		Ray leftSide = new Ray (transform.position,transform.TransformDirection(Vector3.left));
 		Ray rightSide = new Ray (transform.position,transform.TransformDirection(Vector3.right));
 
 		if (Physics.Raycast(leftSide,out leftHit, wallRunDistance))
 		{
-			if(leftHit.collider.tag == "Environment")
+			if(leftHit.collider.tag == "Environment" )
 			{
-				
-				stickLeft = true;
+				stickToWall = true;
+				curState = ControlState.WALLRUNNING;
 			}
 			else
 			{
-				stickLeft = false;
+				stickToWall = false;
 			}
 		}
 		else if (Physics.Raycast(rightSide,out rightHit, wallRunDistance))
 		{
 			if (rightHit.collider.tag == "Environment")
 			{
-				stickRight = true;
+				stickToWall = true;
+				curState = ControlState.WALLRUNNING;
 			}
 			else
 			{
-				stickRight = false;
+				stickToWall = false;
 			}
 		}
+	}
 
-		if (grounded && stickLeft && CrossPlatformInputManager.GetButtonDown("Jump"))
+	void WallRunning()
+	{
+		//Run check
+		if (grounded && stickToWall && curState == ControlState.WALLRUNNING && CrossPlatformInputManager.GetButtonDown("Jump"))
 		{
-			rb.useGravity = false;
+			startRunning = true;
 		}
-		else if (grounded && stickRight && CrossPlatformInputManager.GetButtonDown("Jump"))
-		{
 
+		//Running Sequence
+		if (startRunning)
+		{
+			runningTime += Time.deltaTime;
+			if (runningTime <= 1.5f)
+			{
+				rb.useGravity = false;
+				transform.Translate(Vector3.forward * forwardSpeed * Time.deltaTime, Space.Self);
+				//rb.AddForce(Vector3.up * jumpingForce/5, ForceMode.Impulse);
+			}
+			else if (runningTime > 1.5f)
+			{ 
+				startRunning = false;
+				runningTime = 0.0f;
+				rb.useGravity = true;
+				curState = ControlState.NORMAL;
+			}
 		}
 
 	}

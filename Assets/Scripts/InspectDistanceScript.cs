@@ -6,7 +6,7 @@ public class InspectDistanceScript : MonoBehaviour {
 
 	public GameObject player;
 	public float range = 20f;
-
+	public bool isInspected = false;
 	float distance;
 	Renderer rend;
 	Color originalColor;
@@ -19,24 +19,31 @@ public class InspectDistanceScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		distance = Vector3.Distance(transform.position, player.transform.position);
-		if(distance <= range)
+		if(!isInspected)
 		{
-			rend.material.color = Color.blue;
-			//!testing
-			if(Input.GetKeyDown(KeyCode.A)) 
-				{
-					PathFinderManager.Instance.startMove = true;
-					PathFinderManager.Instance.goal = this.transform;	
-				}
-			//!
-			DetectTap();
+			distance = Vector3.Distance(transform.position, player.transform.position);
+			if(distance <= range)
+			{
+				rend.material.color = Color.blue;
+				//!testing
+				if(Input.GetKeyDown(KeyCode.A)) 
+					{
+						PathFinderManager.Instance.startMove = true;
+					PathFinderManager.Instance.goal = this.gameObject;	
+					}
+				//!
+				DetectTap();
+			}
+			else
+			{
+				PathFinderManager.Instance.confirmWindow.SetActive(false);
+				rend.material.color = originalColor;
+			}
 		}
 		else
 		{
 			rend.material.color = originalColor;
 		}
-
 	}
 
 	void DetectTap()
@@ -49,7 +56,7 @@ public class InspectDistanceScript : MonoBehaviour {
 			{
 				if(castHit.collider.CompareTag("InspectableObjects"))
 				{
-					PathFinderManager.Instance.goal = castHit.collider.gameObject.transform;
+					PathFinderManager.Instance.goal = castHit.collider.gameObject;
 					PathFinderManager.Instance.startMove = true;
 				}
 			}	

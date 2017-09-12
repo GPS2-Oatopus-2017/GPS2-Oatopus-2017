@@ -10,7 +10,8 @@ public class PathFinderManager : MonoBehaviour {
 	public static PathFinderManager Instance;
 	public GameObject player;
 	public GameObject confirmWindow;
-	public Transform goal;
+	public GameObject goal;
+	public InspectDistanceScript inspectObjects;
 	public bool startMove;
 	public float remainingPos;
 	NavMeshAgent agent;
@@ -29,11 +30,13 @@ public class PathFinderManager : MonoBehaviour {
 		if(startMove)
 		{
 			agent.enabled = true;
-			agent.destination = goal.position;
+			agent.destination = goal.transform.position;
+			inspectObjects = goal.GetComponent<InspectDistanceScript>();
 			agent.isStopped = false;
 			if(CrossPlatformInputManager.GetAxis("Vertical") != 0 || CrossPlatformInputManager.GetAxis("Horizontal") != 0 || CrossPlatformInputManager.GetButtonDown("Jump"))
 			{
 				StopMoving();
+				inspectObjects = null;
 			}
 			else if(!agent.pathPending)
 			{
@@ -55,5 +58,10 @@ public class PathFinderManager : MonoBehaviour {
 		goal = null;
 		startMove = false;	
 	}
-		
+
+	public void Inspected()
+	{
+		inspectObjects.isInspected = true;
+		inspectObjects = null;
+	}
 }

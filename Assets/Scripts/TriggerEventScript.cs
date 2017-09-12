@@ -6,7 +6,9 @@ using UnityEngine.UI;
 public class TriggerEventScript : MonoBehaviour {
 
 	public GameObject triggerEventCanvas;
+	public Transform eventObjectToFocusOn;
 	public Text timerTextBox;
+	private Quaternion previousCameraRotation;
 
 	public bool timerStarted = false;
 	public bool eventDone = false; // Can Remove If This Is Repeatable Event
@@ -52,9 +54,11 @@ public class TriggerEventScript : MonoBehaviour {
 	{
 		if(other.tag == "Player")
 		{
-			if(eventDone != true)
+			if(eventDone != true) // Can Remove If This Is Repeatable Event
 			{
 				triggerEventCanvas.SetActive(true);
+				previousCameraRotation = Camera.main.transform.rotation;
+				other.GetComponentInChildren<Camera>().transform.LookAt(eventObjectToFocusOn);
 				Camera.main.fieldOfView -= cameraFieldOfView;
 				Time.timeScale = 0.0f;
 				timerStarted = true;
@@ -70,6 +74,7 @@ public class TriggerEventScript : MonoBehaviour {
 		triggerEventCanvas.SetActive(false);
 		Time.timeScale = 1.0f;
 		Camera.main.fieldOfView += cameraFieldOfView;
+		Camera.main.transform.rotation = previousCameraRotation;
 		eventDone = true; // Can Remove If This Is Repeatable Event
 	}
 
@@ -81,6 +86,7 @@ public class TriggerEventScript : MonoBehaviour {
 		triggerEventCanvas.SetActive(false);
 		Time.timeScale = 1.0f;
 		Camera.main.fieldOfView += cameraFieldOfView;
+		Camera.main.transform.rotation = previousCameraRotation;
 		eventDone = true; // Can Remove If This Is Repeatable Event
 	}
 }

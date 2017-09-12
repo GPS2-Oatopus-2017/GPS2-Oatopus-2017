@@ -106,6 +106,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   triggerEventCanvas: {fileID: 0}
+  eventObjectToFocusOn: {fileID: 0}
   timerTextBox: {fileID: 0}
   timerStarted: 0
   eventDone: 0

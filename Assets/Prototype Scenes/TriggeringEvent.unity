@@ -810,6 +810,16 @@ Prefab:
       propertyPath: m_TagString
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 54724045433180120, guid: 04b9fdcada8292e4c95f3a08f38fa5dc,
+        type: 2}
+      propertyPath: m_UseGravity
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 54724045433180120, guid: 04b9fdcada8292e4c95f3a08f38fa5dc,
+        type: 2}
+      propertyPath: m_Constraints
+      value: 112
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 04b9fdcada8292e4c95f3a08f38fa5dc, type: 2}
   m_IsPrefabParent: 0
@@ -1465,6 +1475,11 @@ Prefab:
       propertyPath: triggerEventCanvas
       value: 
       objectReference: {fileID: 1157690232}
+    - target: {fileID: 114604210396000112, guid: 3a54195716450b54185161cd0441440b,
+        type: 2}
+      propertyPath: eventObjectToFocusOn
+      value: 
+      objectReference: {fileID: 1831273465}
     - target: {fileID: 114604210396000112, guid: 3a54195716450b54185161cd0441440b,
         type: 2}
       propertyPath: timerTextBox

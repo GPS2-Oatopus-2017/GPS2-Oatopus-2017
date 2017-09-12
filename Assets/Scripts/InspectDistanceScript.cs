@@ -23,11 +23,13 @@ public class InspectDistanceScript : MonoBehaviour {
 		if(distance <= range)
 		{
 			rend.material.color = Color.blue;
-//			if(Input.GetKeyDown(KeyCode.A)) /!testing
-//				{
-//					PathFinderManager.Instance.startMove = true;
-//					PathFinderManager.Instance.goal = this.transform;	
-//				}
+			//!testing
+			if(Input.GetKeyDown(KeyCode.A)) 
+				{
+					PathFinderManager.Instance.startMove = true;
+					PathFinderManager.Instance.goal = this.transform;	
+				}
+			//!
 			DetectTap();
 		}
 		else

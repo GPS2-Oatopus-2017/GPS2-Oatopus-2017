@@ -9,6 +9,7 @@ public class PathFinderManager : MonoBehaviour {
 
 	public static PathFinderManager Instance;
 	public GameObject player;
+	public GameObject confirmWindow;
 	public Transform goal;
 	public bool startMove;
 	public float remainingPos;
@@ -16,8 +17,10 @@ public class PathFinderManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		confirmWindow.SetActive(false);
 		Instance = this;
 		agent = player.GetComponent<NavMeshAgent>();
+		agent.enabled = false;
 		agent.stoppingDistance = 3;
 	}
 	
@@ -25,19 +28,21 @@ public class PathFinderManager : MonoBehaviour {
 	void Update () {
 		if(startMove)
 		{
+			agent.enabled = true;
 			agent.destination = goal.position;
 			agent.isStopped = false;
-			if(CrossPlatformInputManager.GetAxis("Vertical") != 0 || CrossPlatformInputManager.GetAxis("Horizontal") != 0)
+			if(CrossPlatformInputManager.GetAxis("Vertical") != 0 || CrossPlatformInputManager.GetAxis("Horizontal") != 0 || CrossPlatformInputManager.GetButtonDown("Jump"))
 			{
 				StopMoving();
 			}
 			else if(!agent.pathPending)
 			{
 				remainingPos = Vector3.Distance(player.transform.position,goal.transform.position);
-
 				if(remainingPos <= agent.stoppingDistance)
 				{
-					StopMoving();	
+					//player.transform.LookAt(goal.transform.position);
+					StopMoving();
+					confirmWindow.SetActive(true);
 				}
 			}
 		}
@@ -46,7 +51,9 @@ public class PathFinderManager : MonoBehaviour {
 	void StopMoving()
 	{
 		agent.isStopped = true;
+		agent.enabled = false;
 		goal = null;
 		startMove = false;	
 	}
+		
 }

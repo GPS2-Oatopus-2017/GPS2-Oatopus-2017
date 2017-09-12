@@ -1,0 +1,3 @@
+new building tag
+new building manager tag
+player jump hit added building tag

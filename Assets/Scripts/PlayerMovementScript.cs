@@ -65,7 +65,7 @@ public class PlayerMovementScript : MonoBehaviour
 		if(Physics.Raycast(landingRay, out hit, landingDistance))
 		{
 			//If gameobjects with tag "Environment" is hit, it's grounded.
-			if(hit.collider.tag == "Environment")
+			if(hit.collider.tag == "Environment" || hit.collider.tag == "Building")
 			{
 				grounded = true;
 			}

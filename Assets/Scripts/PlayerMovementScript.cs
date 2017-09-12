@@ -17,8 +17,8 @@ public class PlayerMovementScript : MonoBehaviour
 	public float backwardSpeed;
 	public float jumpingForce;
 	public float ledgeSpeed;
-
 	public bool isOnLedge = false;
+	public ProgressBar miniGame;
 
 	//Private variables
 	private bool grounded = false;
@@ -81,19 +81,37 @@ public class PlayerMovementScript : MonoBehaviour
 			grounded = false;
 		}
 
-		if (isOnLedge) {
+		if (isOnLedge) 
+		{
 			rb.constraints = RigidbodyConstraints.FreezeAll;
-			if (CrossPlatformInputManager.GetButtonDown ("Jump")) {
+			if (miniGame.miniGameComplete == true)
+			{
 				rb.AddForce (Vector3.up * jumpingForce, ForceMode.Impulse);
 				rb.constraints = ~RigidbodyConstraints.FreezeAll;
 				isOnLedge = false;
+				miniGame.miniGameComplete = false;
+				Debug.Log(miniGame.miniGameComplete);
 			}
-			if (CrossPlatformInputManager.GetAxis ("Horizontal") < 0) {
+
+			else if(miniGame.letGo == true)
+			{
+				//rb.AddForce (Vector3.back * jumpingForce, ForceMode.Impulse);
+				//rb.constraints = ~RigidbodyConstraints.FreezeAll;
+				rb.constraints = ~RigidbodyConstraints.None;
+				miniGame.letGo = false;
+				isOnLedge = false;
+			}
+			/*if (CrossPlatformInputManager.GetAxis ("Horizontal") < 0) 
+			{
 				transform.Translate (Vector3.left * ledgeSpeed * Time.deltaTime);
-			} else if (CrossPlatformInputManager.GetAxis ("Horizontal") > 0) {
+			} 
+			else if (CrossPlatformInputManager.GetAxis ("Horizontal") > 0) 
+			{
 				transform.Translate (Vector3.right * ledgeSpeed * Time.deltaTime);
-			}
-		} else {
+			}*/
+		} 
+		else 
+		{
 			rb.constraints = ~RigidbodyConstraints.FreezeAll;
 		}
 	}

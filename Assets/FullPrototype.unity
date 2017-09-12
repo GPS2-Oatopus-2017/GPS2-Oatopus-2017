@@ -1173,7 +1173,7 @@ Prefab:
     - target: {fileID: 114311671036936860, guid: d7dc46787d9bb6e42833478e20352d1b,
         type: 2}
       propertyPath: m_Text
-      value: The wolf HUNT FOR IT PREY!!
+      value: Do you want to build a snowman?
       objectReference: {fileID: 0}
     - target: {fileID: 114810936615718626, guid: d7dc46787d9bb6e42833478e20352d1b,
         type: 2}
@@ -1184,6 +1184,11 @@ Prefab:
         type: 2}
       propertyPath: m_Text
       value: No
+      objectReference: {fileID: 0}
+    - target: {fileID: 114311671036936860, guid: d7dc46787d9bb6e42833478e20352d1b,
+        type: 2}
+      propertyPath: m_FontData.m_FontSize
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: d7dc46787d9bb6e42833478e20352d1b, type: 2}

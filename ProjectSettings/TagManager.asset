@@ -7,6 +7,9 @@ TagManager:
   - Environment
   - InspectableObjects
   - Ledge
+  - Building
+  - GameManager
+  - BuildingManager
   layers:
   - Default
   - TransparentFX

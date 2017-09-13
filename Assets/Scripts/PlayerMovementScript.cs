@@ -3,6 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 
+public enum ControlState
+{
+	NORMAL,
+	JUMPING,
+	WALLRUNNING,
+	LOCKCONTROL
+}
+
 //Summary: Take control of the player's movement using the input data.
 public class PlayerMovementScript : MonoBehaviour
 {
@@ -24,8 +32,16 @@ public class PlayerMovementScript : MonoBehaviour
 
 	//Private variables
 	private bool grounded = false;
+	private bool stickToWall = false;
 	private float radius;
 	private float landingDistance;
+
+	private float wallRunDistance;
+	private float runningTime = 0.0f;
+	private bool startRunning = false;
+
+	//emum States
+	public ControlState curState;
 
 	void Start ()
 	{
@@ -36,6 +52,10 @@ public class PlayerMovementScript : MonoBehaviour
 		//Setup
 		radius = col.radius;
 		landingDistance = col.bounds.extents.y;
+		wallRunDistance = .8f;
+
+		//current State
+		curState = ControlState.NORMAL;
 	}
 
 	void FixedUpdate()
@@ -44,29 +64,37 @@ public class PlayerMovementScript : MonoBehaviour
 		float moveDir = CrossPlatformInputManager.GetAxis("Vertical");
 		float moveSpeed = 0;
 
-		//Use different speed for moving forward or moving backwards
-		if(moveDir > 0)
-		{
-			moveSpeed = moveDir * forwardSpeed;
-		}
-		else if(moveDir < 0)
-		{
-			moveSpeed = moveDir * backwardSpeed;
-		}
 
-		//Move the player according to the speed calculated
-		transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime, Space.Self);
+		//Let the player move at NORMAL, JUMPING & WALLRUNNING, but not LOCKCONTROL
+		if (curState == ControlState.NORMAL || curState == ControlState.JUMPING || curState == ControlState.WALLRUNNING)
+		{
+			//Use different speed for moving forward or moving backwards
+			if(moveDir > 0)
+			{
+				moveSpeed = moveDir * forwardSpeed;
+			}
+			else if(moveDir < 0)
+			{
+				moveSpeed = moveDir * backwardSpeed;
+			}
 
-		//Debug for looking the value of both axes
-//		Debug.Log(string.Format("{0}, {1}", CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetAxis("Vertical")));
+			//Move the player according to the speed calculated
+			transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime, Space.Self);
+
+			//Debug for looking the value of both axes
+			Debug.Log(string.Format("{0}, {1}", CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetAxis("Vertical")));
+		}
 	}
 
 	void Update()
 	{
-		//Calculate new angle when turned left or right
-		float newRot = transform.rotation.eulerAngles.y + (CrossPlatformInputManager.GetAxis("Horizontal") * sensitivity * Time.deltaTime);
-		//Apply new angle to the gameobject
-		transform.rotation = Quaternion.Euler(0, newRot, 0);
+		if (curState == ControlState.NORMAL || curState == ControlState.JUMPING || curState == ControlState.WALLRUNNING)
+		{
+			//Calculate new angle when turned left or right
+			float newRot = transform.rotation.eulerAngles.y + (CrossPlatformInputManager.GetAxis("Horizontal") * sensitivity * Time.deltaTime);
+			//Apply new angle to the gameobject
+			transform.rotation = Quaternion.Euler(0, newRot, 0);
+		}
 		
 		//Raycasting
 		RaycastHit hit;
@@ -78,6 +106,9 @@ public class PlayerMovementScript : MonoBehaviour
 			if(hit.collider.tag == "Environment")
 			{
 				grounded = true;
+
+				//reset here
+				curState = ControlState.NORMAL;
 			}
 			else
 			{
@@ -88,16 +119,35 @@ public class PlayerMovementScript : MonoBehaviour
 		{
 			grounded = false;
 		}
-		
-		//When player hits the jump button
-		if(CrossPlatformInputManager.GetButtonDown("Jump"))
+
+		CheckWallRunning();
+
+		//make sure that the jump button is not calling on both functions
+		if (curState == ControlState.WALLRUNNING)
 		{
-			if(grounded)
+			WallRunning();
+
+		}
+		else if (curState == ControlState.NORMAL)
+		{
+			//When player hits the jump button
+			if(CrossPlatformInputManager.GetButtonDown("Jump"))
 			{
-				//Add force to boost the player upwards
-				rb.AddForce(Vector3.up * jumpingForce, ForceMode.Impulse);
+				if(grounded)
+				{
+					//Add force to boost the player upwards
+					rb.AddForce(Vector3.up * jumpingForce, ForceMode.Impulse);
+
+					//Lock the state here (reset in the code above ^^^^)
+					curState = ControlState.JUMPING;
+				}
+				grounded = false;
 			}
-			grounded = false;
+
+			//Just in case running finish early
+			startRunning = false;
+			runningTime = 0.0f;
+			rb.useGravity = true;
 		}
 
 		if (isOnLedge) 
@@ -106,7 +156,8 @@ public class PlayerMovementScript : MonoBehaviour
 			if (miniGame.miniGameComplete == true)
 			{
 				rb.AddForce (Vector3.up * jumpingForce, ForceMode.Impulse);
-				rb.constraints = ~RigidbodyConstraints.FreezeAll;
+				rb.constraints = RigidbodyConstraints.FreezeRotation;
+//				rb.constraints = ~RigidbodyConstraints.FreezeAll;
 				isOnLedge = false;
 				miniGame.miniGameComplete = false;
 				Debug.Log(miniGame.miniGameComplete);
@@ -131,7 +182,67 @@ public class PlayerMovementScript : MonoBehaviour
 		} 
 		else 
 		{
-			rb.constraints = ~RigidbodyConstraints.FreezeAll;
+			rb.constraints = RigidbodyConstraints.FreezeRotation;
 		}
+	}
+
+	void CheckWallRunning()
+	{
+		RaycastHit wallHit;
+		//using transfromDirection for the left and right (follow playerObject, not scene)
+		Ray leftSide = new Ray (transform.position,transform.TransformDirection(Vector3.left));
+		Ray rightSide = new Ray (transform.position,transform.TransformDirection(Vector3.right));
+
+		if (Physics.Raycast(leftSide,out wallHit, wallRunDistance))
+		{
+			if(wallHit.collider.tag == "Environment" )
+			{
+				stickToWall = true;
+				curState = ControlState.WALLRUNNING;
+			}
+		}
+		else if (Physics.Raycast(rightSide,out wallHit, wallRunDistance))
+		{
+			if (wallHit.collider.tag == "Environment")
+			{
+				stickToWall = true;
+				curState = ControlState.WALLRUNNING;
+			}
+		}
+		else if (stickToWall)
+		{
+			stickToWall = false;
+			curState = ControlState.NORMAL;
+		}
+
+	}
+
+	void WallRunning()
+	{
+		//Run check
+		if (grounded && stickToWall && curState == ControlState.WALLRUNNING && CrossPlatformInputManager.GetButtonDown("Jump"))
+		{
+			startRunning = true;
+		}
+
+		//Running Sequence
+		if (startRunning && stickToWall)
+		{
+			runningTime += Time.deltaTime;
+			if (runningTime <= 1.5f)
+			{
+				rb.useGravity = false;
+				transform.Translate(Vector3.forward * forwardSpeed * Time.deltaTime, Space.Self);
+				//rb.AddForce(Vector3.up * jumpingForce/5, ForceMode.Impulse);
+			}
+			else if (runningTime > 1.5f)
+			{ 
+				startRunning = false;
+				runningTime = 0.0f;
+				rb.useGravity = true;
+				curState = ControlState.NORMAL;
+			}
+		}
+
 	}
 }

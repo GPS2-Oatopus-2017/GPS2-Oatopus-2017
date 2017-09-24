@@ -9,15 +9,13 @@ public class RespawnScript : MonoBehaviour
 	// Use this for initialization
 	void OnTriggerEnter (Collider other)
 	{
-		if(other.tag == "Player")
-		{
-			SceneManager.LoadScene("RefinePrototype");
+		if (other.tag == "Player") {
+			SceneManager.LoadScene ("RefinePrototype");
 		}
-		Debug.Log("WTF?");
 	}
 
-	void Start()
+	void Start ()
 	{
-		Debug.Log("WTF U WANT?");
+		
 	}
 }

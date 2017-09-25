@@ -545,7 +545,7 @@ Prefab:
     - target: {fileID: 114100781973402356, guid: d5a7de93b98066841881875fde4f6d95,
         type: 2}
       propertyPath: movementSettings.ForwardSpeed
-      value: 6
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114100781973402356, guid: d5a7de93b98066841881875fde4f6d95,
         type: 2}
